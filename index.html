@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Yury’khome | Todo para tu hogar</title>
+
+    <meta name="description"
+          content="Descubre productos para tu hogar en Yury’khome. Encuentra estilo, comodidad y buenos precios.">
+
+    <meta name="theme-color" content="#f7f3ed">
+
+    <meta property="og:title" content="Yury’khome | Todo para tu hogar">
+    <meta property="og:description"
+          content="Dale a tu hogar el estilo que merece.">
+    <meta property="og:type" content="website">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="encabezado">
+    <a href="#" class="logo">Yury’<span>khome</span></a>
+
+    <button id="botonCarrito" class="boton-carrito"
+            type="button" onclick="abrirCarrito()">
+        🛒 <span id="contador-carrito">0</span>
+    </button>
+</header>
+
+<main>
+
+    <section class="portada">
+        <p class="etiqueta">BIENVENIDOS A YURY’KHOME</p>
+
+        <h1>Tu hogar,<br><span>tu estilo.</span></h1>
+
+        <p>
+            Encuentra esos detalles que hacen de tu casa
+            un lugar especial.
+        </p>
+
+        <a href="#catalogo" class="boton-principal">
+            Explorar productos
+        </a>
+    </section>
+
+    <section class="seccion-catalogo" id="catalogo">
+
+        <div class="titulo-seccion">
+            <p class="etiqueta">NUESTRO CATÁLOGO</p>
+            <h2>Productos para ti</h2>
+            <p>Descubre todo lo que tenemos para tu hogar.</p>
+        </div>
+
+        <div class="controles">
+
+            <input
+                type="search"
+                id="buscarProducto"
+                placeholder="Buscar productos..."
+                autocomplete="off"
+                aria-label="Buscar productos"
+            >
+
+            <select id="filtroCategoria" aria-label="Filtrar por categoría">
+                <option value="">Todas las categorías</option>
+            </select>
+
+            <div class="filtro-precios">
+                <input
+                    type="number"
+                    id="precioMin"
+                    placeholder="Precio mínimo"
+                    min="0"
+                >
+
+                <input
+                    type="number"
+                    id="precioMax"
+                    placeholder="Precio máximo"
+                    min="0"
+                >
+            </div>
+
+            <button id="limpiarFiltros" type="button">
+                Limpiar filtros
+            </button>
+
+        </div>
+
+        <p id="estadoCatalogo" class="estado-catalogo">
+            Preparando catálogo...
+        </p>
+
+        <section class="productos" id="productos"
+                 aria-label="Catálogo de productos">
+        </section>
+
+    </section>
+
+</main>
+
+<div id="visor" class="visor" aria-hidden="true">
+    <button type="button" onclick="cerrarImagen()"
+            class="cerrar-visor" aria-label="Cerrar imagen">×</button>
+
+    <img id="imagenGrande" src="" alt="Vista ampliada del producto">
+</div>
+
+<div id="fondoCarrito" class="fondo-carrito"
+     onclick="cerrarCarrito()"></div>
+
+<aside id="modal-carrito" class="modal-carrito"
+       aria-label="Tu carrito de compras" aria-hidden="true">
+
+    <div class="encabezado-carrito">
+        <h2>Tu carrito</h2>
+
+        <button type="button" onclick="cerrarCarrito()"
+                aria-label="Cerrar carrito">×</button>
+    </div>
+
+    <div id="lista-carrito" class="lista-carrito">
+    </div>
+
+    <div class="pie-carrito">
+        <p>Total: <strong>$<span id="total">0</span></strong></p>
+
+        <button type="button" class="boton-principal"
+                onclick="comprarWhatsApp()">
+            Pedir por WhatsApp
+        </button>
+
+        <button type="button" class="boton-secundario"
+                onclick="cerrarCarrito()">
+            Seguir comprando
+        </button>
+    </div>
+
+</aside>
+
+<footer class="pie-pagina">
+    <a href="#" class="logo">Yury’<span>khome</span></a>
+
+    <p>Tu hogar, tu estilo.</p>
+
+    <p class="copyright">
+        © <span id="anio"></span> Yury’khome. Todos los derechos reservados.
+    </p>
+</footer>
+
+<script src="script.js"></script>
+<script src="carrito.js"></script>
+
+</body>
+</html>
