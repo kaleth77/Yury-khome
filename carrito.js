@@ -3,12 +3,11 @@ console.log("Carrito Yury’khome conectado");
 // ===== CONFIGURACIÓN =====
 const CLAVE_CARRITO = "yurykhome_carrito";
 
-// IMPORTANTE: pon aquí un número que SÍ tenga WhatsApp.
-// Formato Colombia: 57 + 10 dígitos, sin +, sin espacios, sin guiones.
-// Ejemplo: 573001234567
+// Pon aquí un número que SÍ tenga WhatsApp.
+// Formato Colombia: 57 + 10 dígitos, sin +, espacios ni guiones.
 const WHATSAPP_TIENDA = "573208279769";
 
-// ===== CARRITO (con protección si localStorage falla) =====
+// ===== CARRITO =====
 let carrito = [];
 
 try {
@@ -28,12 +27,26 @@ function guardarCarrito() {
 
 function abrirCarrito() {
   const modal = document.getElementById("modal-carrito");
-  if (modal) modal.style.display = "flex";
+  const fondo = document.getElementById("fondoCarrito");
+
+  if (fondo) fondo.style.display = "block";
+  if (modal) {
+    modal.classList.add("abierto");
+    modal.setAttribute("aria-hidden", "false");
+  }
+  document.body.style.overflow = "hidden";
 }
 
 function cerrarCarrito() {
   const modal = document.getElementById("modal-carrito");
-  if (modal) modal.style.display = "none";
+  const fondo = document.getElementById("fondoCarrito");
+
+  if (modal) {
+    modal.classList.remove("abierto");
+    modal.setAttribute("aria-hidden", "true");
+  }
+  if (fondo) fondo.style.display = "none";
+  document.body.style.overflow = "";
 }
 
 function agregarAlCarrito(nombre, precio, imagen) {
@@ -45,6 +58,7 @@ function agregarAlCarrito(nombre, precio, imagen) {
 
   guardarCarrito();
   actualizarCarrito();
+  abrirCarrito();
 }
 
 function eliminarDelCarrito(index) {
@@ -63,31 +77,39 @@ function actualizarCarrito() {
   if (lista) {
     lista.innerHTML = "";
 
+    if (carrito.length === 0) {
+      const vacio = document.createElement("p");
+      vacio.textContent = "Tu carrito está vacío.";
+      vacio.style.cssText = "padding:30px 0;text-align:center;color:#777066;";
+      lista.appendChild(vacio);
+    }
+
     carrito.forEach((producto, index) => {
       total += producto.precio;
 
       const item = document.createElement("div");
-      item.style.cssText =
-        "margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #ddd;";
+      item.className = "item-carrito";
 
       const imagen = document.createElement("img");
       imagen.src = producto.imagen || "";
       imagen.alt = producto.nombre;
-      imagen.width = 60;
-      imagen.style.borderRadius = "6px";
 
-      const nombre = document.createElement("strong");
+      const datos = document.createElement("div");
+
+      const nombre = document.createElement("h4");
       nombre.textContent = producto.nombre;
 
       const precio = document.createElement("p");
       precio.textContent = "$" + producto.precio.toLocaleString("es-CO");
+
+      datos.append(nombre, precio);
 
       const eliminar = document.createElement("button");
       eliminar.textContent = "Eliminar";
       eliminar.type = "button";
       eliminar.onclick = () => eliminarDelCarrito(index);
 
-      item.append(imagen, document.createElement("br"), nombre, precio, eliminar);
+      item.append(imagen, datos, eliminar);
       lista.appendChild(item);
     });
   } else {
@@ -109,7 +131,6 @@ function comprarWhatsApp() {
     return;
   }
 
-  // Limpia el número por si trae espacios, + o guiones
   const numero = String(WHATSAPP_TIENDA).replace(/\D/g, "");
 
   let total = 0;
@@ -150,9 +171,7 @@ function comprarWhatsApp() {
 
   const url = "https://wa.me/" + numero + "?text=" + encodeURIComponent(mensaje);
 
-  // Celular: abrir en la misma pestaña (los navegadores móviles bloquean
-  // las ventanas nuevas y así abre directo la app de WhatsApp).
-  // PC: abrir en pestaña nueva, y si la bloquean, usar la misma.
+  // Celular: misma pestaña (abre la app). PC: pestaña nueva, con respaldo.
   const esMovil = /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
 
   if (esMovil) {
@@ -163,7 +182,6 @@ function comprarWhatsApp() {
   }
 }
 
-// Por si el script se carga como módulo o los botones usan onclick="..."
 window.abrirCarrito = abrirCarrito;
 window.cerrarCarrito = cerrarCarrito;
 window.agregarAlCarrito = agregarAlCarrito;
