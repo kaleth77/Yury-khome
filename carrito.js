@@ -1,9 +1,29 @@
-console.log("Carrito Yury'khome conectado");
+console.log("Carrito Yury’khome conectado");
 
-let carrito = JSON.parse(localStorage.getItem("yurykhome_carrito")) || [];
+// ===== CONFIGURACIÓN =====
+const CLAVE_CARRITO = "yurykhome_carrito";
+
+// IMPORTANTE: pon aquí un número que SÍ tenga WhatsApp.
+// Formato Colombia: 57 + 10 dígitos, sin +, sin espacios, sin guiones.
+// Ejemplo: 573001234567
+const WHATSAPP_TIENDA = "573208279769";
+
+// ===== CARRITO (con protección si localStorage falla) =====
+let carrito = [];
+
+try {
+  const guardado = JSON.parse(localStorage.getItem(CLAVE_CARRITO));
+  if (Array.isArray(guardado)) carrito = guardado;
+} catch (e) {
+  carrito = [];
+}
 
 function guardarCarrito() {
-  localStorage.setItem("yurykhome_carrito", JSON.stringify(carrito));
+  try {
+    localStorage.setItem(CLAVE_CARRITO, JSON.stringify(carrito));
+  } catch (e) {
+    console.warn("No se pudo guardar el carrito:", e);
+  }
 }
 
 function abrirCarrito() {
@@ -17,7 +37,12 @@ function cerrarCarrito() {
 }
 
 function agregarAlCarrito(nombre, precio, imagen) {
-  carrito.push({ nombre, precio: Number(precio), imagen });
+  carrito.push({
+    nombre,
+    precio: Number(precio) || 0,
+    imagen: imagen || ""
+  });
+
   guardarCarrito();
   actualizarCarrito();
 }
@@ -32,68 +57,118 @@ function actualizarCarrito() {
   const lista = document.getElementById("lista-carrito");
   const totalElemento = document.getElementById("total");
   const contador = document.getElementById("contador-carrito");
+
   let total = 0;
+
   if (lista) {
     lista.innerHTML = "";
+
     carrito.forEach((producto, index) => {
       total += producto.precio;
-      lista.innerHTML += `
-        <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #444;">
-          <img src="${producto.imagen}" width="60" style="border-radius:6px;"><br><br>
-          <strong>${producto.nombre}</strong><br>
-          $${producto.precio.toLocaleString('es-CO')}<br><br>
-          <button onclick="eliminarDelCarrito(${index})">Eliminar</button>
-        </div>
-      `;
+
+      const item = document.createElement("div");
+      item.style.cssText =
+        "margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #ddd;";
+
+      const imagen = document.createElement("img");
+      imagen.src = producto.imagen || "";
+      imagen.alt = producto.nombre;
+      imagen.width = 60;
+      imagen.style.borderRadius = "6px";
+
+      const nombre = document.createElement("strong");
+      nombre.textContent = producto.nombre;
+
+      const precio = document.createElement("p");
+      precio.textContent = "$" + producto.precio.toLocaleString("es-CO");
+
+      const eliminar = document.createElement("button");
+      eliminar.textContent = "Eliminar";
+      eliminar.type = "button";
+      eliminar.onclick = () => eliminarDelCarrito(index);
+
+      item.append(imagen, document.createElement("br"), nombre, precio, eliminar);
+      lista.appendChild(item);
     });
-    if (totalElemento) totalElemento.textContent = total.toLocaleString('es-CO');
+  } else {
+    carrito.forEach((p) => (total += p.precio));
   }
-  if (contador) contador.textContent = carrito.length;
+
+  if (totalElemento) {
+    totalElemento.textContent = total.toLocaleString("es-CO");
+  }
+
+  if (contador) {
+    contador.textContent = carrito.length;
+  }
 }
 
 function comprarWhatsApp() {
   if (carrito.length === 0) {
-    alert("El carrito está vacío");
+    alert("Tu carrito está vacío. Agrega productos antes de continuar.");
     return;
   }
 
-  let mensaje = "\uD83D\uDED2 NUEVO PEDIDO - YURI'KHOME \u231A\n\n\uD83D\uDCE6 Productos seleccionados:\n";
+  // Limpia el número por si trae espacios, + o guiones
+  const numero = String(WHATSAPP_TIENDA).replace(/\D/g, "");
 
   let total = 0;
-  carrito.forEach(function(producto) {
+
+  let mensaje =
+    "🛍️ NUEVO PEDIDO - YURY’KHOME\n\n" +
+    "📦 Productos seleccionados:\n";
+
+  carrito.forEach(function (producto) {
     total += producto.precio;
-    mensaje += "\n\u231A " + producto.nombre
-             + "\n\uD83D\uDCB0 Precio: $" + producto.precio.toLocaleString('es-CO')
-             + "\n\uD83D\uDCF8 Imagen: " + producto.imagen
-             + "\n";
+
+    let linkImagen = "";
+    if (producto.imagen) {
+      try {
+        linkImagen = new URL(producto.imagen, window.location.href).href;
+      } catch (e) {
+        linkImagen = "";
+      }
+    }
+
+    mensaje +=
+      "\n🛒 " + producto.nombre +
+      "\n💰 Precio: $" + producto.precio.toLocaleString("es-CO") +
+      (linkImagen ? "\n🖼️ Imagen: " + linkImagen : "") +
+      "\n";
   });
 
-  mensaje += "\n——————————————"
-           + "\n\uD83D\uDCB5 TOTAL DEL PEDIDO: $" + total.toLocaleString('es-CO')
-           + "\n\n\uD83D\uDCCD Datos de entrega:"
-           + "\n\u270D Nombre:"
-           + "\n\uD83D\uDCDE Telefono:"
-           + "\n\uD83C\uDFE0 Direccion:"
-           + "\n\n\uD83D\uDE9A Envio a domicilio."
-           + "\n\n\u2728 Gracias por elegir  YURI'KHOME"
-           + "\n\uD83D\uDD70 Calidad y elegancia en cada detalle.";
+  mensaje +=
+    "\n━━━━━━━━━━━━━━━━" +
+    "\n💵 TOTAL DEL PEDIDO: $" + total.toLocaleString("es-CO") +
+    "\n\n📍 DATOS DE ENTREGA" +
+    "\n✍️ Nombre:" +
+    "\n📞 Teléfono:" +
+    "\n🏠 Dirección:" +
+    "\n\n🚚 Envío a domicilio." +
+    "\n\n✨ Gracias por elegir Yury’khome." +
+    "\n¡Tu hogar, tu estilo!";
 
-  localStorage.setItem("kp_ultimo_total", total);
-  localStorage.setItem("kp_ultima_compra", new Date().toISOString());
+  const url = "https://wa.me/" + numero + "?text=" + encodeURIComponent(mensaje);
 
-  const textoEncoded = encodeURIComponent(mensaje);
+  // Celular: abrir en la misma pestaña (los navegadores móviles bloquean
+  // las ventanas nuevas y así abre directo la app de WhatsApp).
+  // PC: abrir en pestaña nueva, y si la bloquean, usar la misma.
+  const esMovil = /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
 
-  // En iPhone abre la app directamente, en otros usa api.whatsapp.com
-  const isIphone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const url = isIphone
-    ? "whatsapp://send?phone=+573208279769&text=" + textoEncoded
-    : "https://api.whatsapp.com/send?phone=+573208279769&text=" + textoEncoded;
-
-  window.open(url, "_blank");
-
-  carrito = [];
-  guardarCarrito();
-  actualizarCarrito();
+  if (esMovil) {
+    window.location.href = url;
+  } else {
+    const ventana = window.open(url, "_blank");
+    if (!ventana) window.location.href = url;
+  }
 }
+
+// Por si el script se carga como módulo o los botones usan onclick="..."
+window.abrirCarrito = abrirCarrito;
+window.cerrarCarrito = cerrarCarrito;
+window.agregarAlCarrito = agregarAlCarrito;
+window.eliminarDelCarrito = eliminarDelCarrito;
+window.actualizarCarrito = actualizarCarrito;
+window.comprarWhatsApp = comprarWhatsApp;
 
 document.addEventListener("DOMContentLoaded", actualizarCarrito);
